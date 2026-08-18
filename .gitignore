@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# 运行时数据
+data/
+*.db
+*.db-journal
+*.sqlite
+
+# 前端
+node_modules/
+dist/
+dist-ssr/
+.vite/
+*.local
+
+# 环境/密钥
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store

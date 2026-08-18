@@ -1,0 +1,67 @@
+:root {
+  font-family: 'Noto Sans SC', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.6;
+  color: #3d2817;
+  background: #f5e6c8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+a {
+  color: #6b4423;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: 1px solid #6b4423;
+  background: #6b4423;
+  color: #f5e6c8;
+  padding: 0.55rem 1.1rem;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button.secondary {
+  background: transparent;
+  color: #6b4423;
+}
+
+input,
+textarea,
+select {
+  font-family: inherit;
+  font-size: 0.95rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid #8b6f47;
+  border-radius: 6px;
+  background: #fbf1dd;
+  color: #3d2817;
+  width: 100%;
+}
+
+.page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+.page-title {
+  color: #6b4423;
+  margin: 0 0 1.2rem;
+  font-size: 1.4rem;
+}
+
+/* P1 用最简版；P2 起替换为完整复古纸质手账风 theme.scss */
