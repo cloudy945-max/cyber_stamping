@@ -9,7 +9,7 @@ const file = ref<File | null>(null)
 const previewUrl = ref<string>('')
 const fileName = ref<string>('')
 
-const stampDate = ref<string>(new Date().toISOString().slice(0, 10))
+const stampDate = ref<string>('')
 const locationName = ref<string>('')
 const address = ref<string>('')
 const city = ref<string>('')
@@ -146,7 +146,8 @@ function reset() {
         <div class="row">
           <label class="field">
             <span class="label">盖章日期</span>
-            <input v-model="stampDate" type="date" />
+            <input v-model="stampDate" type="date" placeholder="留空取照片 EXIF" />
+            <span class="hint">留空则自动取照片拍摄日期</span>
           </label>
           <label class="field">
             <span class="label">类型</span>
@@ -330,6 +331,12 @@ function reset() {
 .label {
   font-size: 0.8rem;
   color: #6b4423;
+}
+
+.hint {
+  font-size: 0.7rem;
+  color: #a08560;
+  margin-top: 0.15rem;
 }
 
 .checkbox {

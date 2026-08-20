@@ -11,8 +11,9 @@ python-jose[cryptography]>=3.3.0
 bcrypt>=4.0.0
 python-multipart>=0.0.9
 Pillow>=10.0.0
+httpx>=0.27.0           # 高德地理编码调用
+rembg>=1.0.50           # AI 抠图（首次使用会下载 ~170MB u2net 模型）
+onnxruntime>=1.16.0     # rembg 2.x 不再强制依赖，需显式声明
 
-# ===== P2 起追加（暂未启用）=====
-# rembg>=1.0.50          # AI 抠图
-# opencv-python-headless  # 印章增强
-# httpx>=0.27.0          # 高德逆地理编码
+# ===== 后续待启用 =====
+# opencv-python-headless  # 印章增强（如需 CLAHE/形态学高级处理时启用）

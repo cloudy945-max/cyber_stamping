@@ -15,6 +15,9 @@ from ..deps import get_current_user
 from ..models.stamp import Stamp
 from ..models.user import User
 from ..schemas.stamp import StampOut, StampUpdate
+from ..services.exif import extract_exif
+from ..services.geocode import geocode, reverse_geocode
+from ..services.pipeline import process_pipeline
 
 router = APIRouter(prefix="/api/stamps", tags=["stamps"])
 
@@ -52,26 +55,67 @@ def create_stamp(
     db: Session = Depends(get_db),
     _: User = Depends(get_current_user),
 ) -> Stamp:
-    """上传一枚印章：保存原图 + 写库。P2 会在此之后触发处理管线。"""
+    """上传一枚印章：保存原图 + EXIF 提取 + 地理编码补全 + 写库。
+
+    字段优先级：用户表单输入 > 照片 EXIF > 默认值（today / None）。
+    """
     saved_path = _save_original(file)
     today = date.today()
+
+    # 1. EXIF 提取（仅在用户未提供对应字段时才用 EXIF 补全）
+    abs_img = settings._resolve(settings.data_dir) / saved_path
+    exif = extract_exif(abs_img)
+    final_date = stamp_date or exif["stamp_date"] or today
+    lat = latitude if latitude is not None else exif["latitude"]
+    lng = longitude if longitude is not None else exif["longitude"]
+
+    # 2. 地理编码补全：有经纬度则逆向补地址；有地址无经纬度则正向补坐标
+    loc_name, addr, c, r = location_name, address, city, region
+
+    if lat is not None and lng is not None:
+        rev = reverse_geocode(lat, lng, db)
+        if rev:
+            if not addr:
+                addr = rev["address"]
+            if not c:
+                c = rev["city"]
+            if not r:
+                r = rev["region"]
+            if not loc_name:
+                loc_name = rev["address"]
+    elif addr or loc_name:
+        query_addr = addr or loc_name
+        fwd = geocode(query_addr or "", db)
+        if fwd:
+            lat, lng = fwd["latitude"], fwd["longitude"]
+            if not c:
+                c = fwd["city"]
+            if not r:
+                r = fwd["region"]
+            if not addr:
+                addr = fwd["address"]
+
     stamp = Stamp(
         original_path=saved_path,
-        stamp_date=stamp_date or today,
+        stamp_date=final_date,
         uploaded_at=today,
-        location_name=location_name,
-        address=address,
-        city=city,
-        region=region,
-        latitude=latitude,
-        longitude=longitude,
+        location_name=loc_name,
+        address=addr,
+        city=c,
+        region=r,
+        latitude=lat,
+        longitude=lng,
         type=type,
         notes=notes,
         is_photo_only=is_photo_only,
-        process_status="done",  # P1 直接 done；P2 改为 pending 由管线异步处理
+        process_status="pending",  # 管线跑完改 done/failed
     )
     db.add(stamp)
     db.commit()
+    db.refresh(stamp)
+
+    # 同步触发图像处理管线（增强 + 抠图）；异常隔离不阻断主响应
+    process_pipeline(stamp, db)
     db.refresh(stamp)
     return stamp
 
@@ -179,3 +223,18 @@ def get_stamp_image(
     if not abs_path.exists():
         raise HTTPException(status_code=404, detail="图片文件缺失")
     return FileResponse(abs_path)
+
+
+@router.post("/{stamp_id}/reprocess", response_model=StampOut)
+def reprocess_stamp(
+    stamp_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+) -> Stamp:
+    """重跑图像处理管线（调整增强参数后或上次失败时调用）。原图不丢。"""
+    stamp = db.get(Stamp, stamp_id)
+    if not stamp:
+        raise HTTPException(status_code=404, detail="印章不存在")
+    process_pipeline(stamp, db)
+    db.refresh(stamp)
+    return stamp

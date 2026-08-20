@@ -106,6 +106,7 @@ watch(page, fetchStamps)
         <p class="subtitle">共 {{ stamps.length }} 条记录{{ hasMore ? '（当前页可能未完）' : '' }}</p>
       </div>
       <div class="header-actions">
+        <RouterLink to="/map" class="map-btn">🗺 地图视图</RouterLink>
         <RouterLink to="/upload" class="add-btn">＋ 新增印章</RouterLink>
         <button class="secondary" @click="onLogout">登出</button>
       </div>
@@ -202,6 +203,17 @@ watch(page, fetchStamps)
   border: 1px solid #6b4423;
   background: #6b4423;
   color: #f5e6c8;
+  padding: 0.55rem 1.1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.map-btn {
+  display: inline-block;
+  text-decoration: none;
+  border: 1px solid #c9a877;
+  background: transparent;
+  color: #6b4423;
   padding: 0.55rem 1.1rem;
   border-radius: 6px;
   font-size: 0.9rem;

@@ -5,10 +5,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
-from .api import auth, stamps
+from .api import auth, stamps, views
 from .config import settings
 from .database import SessionLocal
 from .models.base import Base
+from .models.geocode_cache import GeocodeCache  # noqa: F401  注册到 Base.metadata
 from .models.stamp import Stamp  # noqa: F401  确保被 import 以注册到 Base.metadata
 from .models.user import User  # noqa: F401
 from .security import hash_password
@@ -55,6 +56,7 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(stamps.router)
+app.include_router(views.router)
 
 
 @app.get("/", tags=["meta"])

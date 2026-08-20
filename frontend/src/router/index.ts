@@ -5,6 +5,7 @@ const routes = [
   { path: '/login', name: 'login', component: () => import('@/views/LoginView.vue') },
   { path: '/', redirect: '/timeline' },
   { path: '/timeline', name: 'timeline', component: () => import('@/views/TimelineView.vue'), meta: { requiresAuth: true } },
+  { path: '/map', name: 'map', component: () => import('@/views/MapView.vue'), meta: { requiresAuth: true } },
   { path: '/upload', name: 'upload', component: () => import('@/views/UploadView.vue'), meta: { requiresAuth: true } },
 ]
 

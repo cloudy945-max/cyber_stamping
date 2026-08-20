@@ -46,6 +46,9 @@ class Settings(BaseSettings):
     # 高德 Web 服务 API（P2 启用）
     amap_key: str = ""
 
+    # rembg 抠图模型：u2netp(~4.7MB,快速) / u2net(~176MB,高质量) / silueta(~43MB)
+    rembg_model: str = "u2netp"
+
     # 跨域（开发期放行前端 dev server）
     cors_origins: List[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
 
