@@ -56,6 +56,8 @@ def extract_exif(file_path: Path) -> ExifResult:
 
             # 1. 主 IFD 中的 DateTime（兼容老相机没写 DateTimeOriginal 的场景）
             raw_date_main = exif.get(306)
+            # Pillow 有时把 DateTimeOriginal 直接放在主 IFD 中
+            raw_date_main_dto = exif.get(36867)
 
             # 2. Exif 子 IFD：DateTimeOriginal（36867）/ DateTimeDigitized（36868）
             exif_ifd: dict = {}
@@ -63,7 +65,12 @@ def extract_exif(file_path: Path) -> ExifResult:
                 exif_ifd = exif.get_ifd(IFD.Exif) or {}
             except Exception:
                 exif_ifd = {}
-            raw_date = exif_ifd.get(36867) or exif_ifd.get(36868) or raw_date_main
+            raw_date = (
+                exif_ifd.get(36867)
+                or exif_ifd.get(36868)
+                or raw_date_main_dto
+                or raw_date_main
+            )
             result["stamp_date"] = _parse_date(raw_date)
 
             # 3. GPS 子 IFD

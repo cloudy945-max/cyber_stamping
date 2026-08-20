@@ -163,6 +163,7 @@ onMounted(fetchAll)
         </p>
       </div>
       <div class="header-actions">
+        <RouterLink to="/album" class="nav-btn">盖章本</RouterLink>
         <RouterLink to="/timeline" class="nav-btn">时间线</RouterLink>
         <RouterLink to="/map" class="nav-btn">地图</RouterLink>
         <RouterLink to="/upload" class="add-btn">＋ 新增</RouterLink>

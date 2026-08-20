@@ -23,10 +23,12 @@ const isPhotoOnly = ref(false)
 const submitting = ref(false)
 const error = ref('')
 const success = ref(false)
+const exifLoading = ref(false)
+const exifInfo = ref<string>('')
 
 const canSubmit = computed(() => !!file.value && !submitting.value)
 
-function onFileChange(e: Event) {
+async function onFileChange(e: Event) {
   const input = e.target as HTMLInputElement
   const f = input.files?.[0]
   if (!f) return
@@ -36,9 +38,11 @@ function onFileChange(e: Event) {
   previewUrl.value = URL.createObjectURL(f)
   error.value = ''
   success.value = false
+  exifInfo.value = ''
+  await previewExif(f)
 }
 
-function onDrop(e: DragEvent) {
+async function onDrop(e: DragEvent) {
   e.preventDefault()
   const f = e.dataTransfer?.files?.[0]
   if (!f) return
@@ -51,6 +55,47 @@ function onDrop(e: DragEvent) {
   if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
   previewUrl.value = URL.createObjectURL(f)
   error.value = ''
+  exifInfo.value = ''
+  await previewExif(f)
+}
+
+async function previewExif(f: File) {
+  exifLoading.value = true
+  try {
+    const form = new FormData()
+    form.append('file', f)
+    const { data } = await http.post<any>('/api/stamps/preview-exif', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    if (data.stamp_date && !stampDate.value) {
+      stampDate.value = data.stamp_date
+    }
+    if (data.exif_has_gps) {
+      latitude.value = String(data.latitude)
+      longitude.value = String(data.longitude)
+      if (data.location_name && !locationName.value) {
+        locationName.value = data.location_name
+      }
+      if (data.address && !address.value) {
+        address.value = data.address
+      }
+      if (data.city && !city.value) {
+        city.value = data.city
+      }
+      if (data.region && !region.value) {
+        region.value = data.region
+      }
+      exifInfo.value = '✓ 已自动提取位置信息'
+    } else if (data.exif_has_date) {
+      exifInfo.value = '✓ 已自动提取拍摄日期（无 GPS 位置信息）'
+    } else {
+      exifInfo.value = '⚠ 照片无 EXIF 信息，请手动填写'
+    }
+  } catch {
+    exifInfo.value = '⚠ 无法解析照片信息，请手动填写'
+  } finally {
+    exifLoading.value = false
+  }
 }
 
 function onDragOver(e: DragEvent) {
@@ -108,6 +153,8 @@ function reset() {
   isPhotoOnly.value = false
   error.value = ''
   success.value = false
+  exifInfo.value = ''
+  exifLoading.value = false
 }
 </script>
 
@@ -139,6 +186,8 @@ function reset() {
           <input type="file" accept="image/*" @change="onFileChange" hidden />
         </label>
         <p v-if="fileName" class="file-name">{{ fileName }}</p>
+        <p v-if="exifLoading" class="exif-status">⏳ 正在分析照片信息…</p>
+        <p v-else-if="exifInfo" class="exif-status" :class="{ warn: exifInfo.startsWith('⚠') }">{{ exifInfo }}</p>
       </section>
 
       <!-- 右：表单 -->
@@ -304,6 +353,17 @@ function reset() {
   word-break: break-all;
   text-align: center;
   margin: 0;
+}
+
+.exif-status {
+  font-size: 0.75rem;
+  color: #5a7a3a;
+  margin: 0;
+  text-align: center;
+}
+
+.exif-status.warn {
+  color: #b07030;
 }
 
 .form-box {

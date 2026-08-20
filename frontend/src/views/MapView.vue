@@ -154,6 +154,7 @@ onUnmounted(() => {
         <p class="subtitle">共 {{ totalCount }} 个盖章点</p>
       </div>
       <div class="header-actions">
+        <RouterLink to="/album" class="link">盖章本</RouterLink>
         <RouterLink to="/timeline" class="link">时间线</RouterLink>
         <RouterLink to="/upload" class="add-btn">＋ 新增</RouterLink>
         <button class="secondary" @click="onLogout">登出</button>

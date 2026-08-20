@@ -128,7 +128,7 @@ def list_stamps(
     date_to: Optional[date] = Query(None),
     q: Optional[str] = Query(None, description="关键词（地点名/备注）"),
     page: int = Query(1, ge=1),
-    page_size: int = Query(20, ge=1, le=100),
+    page_size: int = Query(20, ge=1, le=500),
     db: Session = Depends(get_db),
     _: User = Depends(get_current_user),
 ) -> List[Stamp]:
@@ -240,3 +240,54 @@ def reprocess_stamp(
     process_pipeline(stamp, db)
     db.refresh(stamp)
     return stamp
+
+
+@router.post("/preview-exif")
+def preview_exif(
+    file: UploadFile = File(..., description="待检测的图片"),
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+) -> dict:
+    """前端选图后实时预览 EXIF + 地理编码补全，不写库。
+
+    返回字段与 create_stamp 的输入表单对齐，前端可直接用返回值预填。
+    """
+    import tempfile
+
+    suffix = Path(file.filename or "").suffix.lower()
+    fd, tmp_path = tempfile.mkstemp(suffix=suffix or ".img")
+    try:
+        with os.fdopen(fd, "wb") as f:
+            f.write(file.file.read())
+        abs_path = Path(tmp_path)
+
+        exif = extract_exif(abs_path)
+        lat = exif["latitude"]
+        lng = exif["longitude"]
+
+        result: dict = {
+            "stamp_date": exif["stamp_date"].isoformat() if exif["stamp_date"] else None,
+            "latitude": lat,
+            "longitude": lng,
+            "location_name": None,
+            "address": None,
+            "city": None,
+            "region": None,
+            "exif_has_date": exif["stamp_date"] is not None,
+            "exif_has_gps": lat is not None and lng is not None,
+        }
+
+        if lat is not None and lng is not None:
+            rev = reverse_geocode(lat, lng, db)
+            if rev:
+                result["address"] = rev.get("address")
+                result["city"] = rev.get("city")
+                result["region"] = rev.get("region")
+                result["location_name"] = rev.get("address")
+
+        return result
+    finally:
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass

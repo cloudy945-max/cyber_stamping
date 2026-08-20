@@ -107,6 +107,7 @@ watch(page, fetchStamps)
         <p class="subtitle">共 {{ stamps.length }} 条记录{{ hasMore ? '（当前页可能未完）' : '' }}</p>
       </div>
       <div class="header-actions">
+        <RouterLink to="/album" class="map-btn">📖 盖章本</RouterLink>
         <RouterLink to="/stats" class="map-btn">📊 统计</RouterLink>
         <RouterLink to="/map" class="map-btn">🗺 地图视图</RouterLink>
         <RouterLink to="/upload" class="add-btn">＋ 新增印章</RouterLink>

@@ -7,6 +7,7 @@ const routes = [
   { path: '/timeline', name: 'timeline', component: () => import('@/views/TimelineView.vue'), meta: { requiresAuth: true } },
   { path: '/map', name: 'map', component: () => import('@/views/MapView.vue'), meta: { requiresAuth: true } },
   { path: '/stats', name: 'stats', component: () => import('@/views/StatsView.vue'), meta: { requiresAuth: true } },
+  { path: '/album', name: 'album', component: () => import('@/views/StampAlbumView.vue'), meta: { requiresAuth: true } },
   { path: '/upload', name: 'upload', component: () => import('@/views/UploadView.vue'), meta: { requiresAuth: true } },
 ]
 
