@@ -5,6 +5,7 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { http } from '@/api/http'
 import { useAuthStore } from '@/stores/auth'
+import { stampImageUrl } from '@/utils/image'
 
 interface MapPoint {
   id: number
@@ -28,21 +29,9 @@ const totalCount = ref(0)
 const cityFilter = ref('')
 const typeFilter = ref('')
 
-// 印章图片 ObjectURL 缓存（避免重复请求后端）
-const imageCache = new Map<number, string>()
-
-async function getImageUrl(id: number): Promise<string> {
-  if (imageCache.has(id)) return imageCache.get(id)!
-  try {
-    const { data } = await http.get(`/api/stamps/${id}/image`, {
-      responseType: 'blob',
-    })
-    const url = URL.createObjectURL(data)
-    imageCache.set(id, url)
-    return url
-  } catch {
-    return ''
-  }
+// 印章图片 URL（含 access_token query，浏览器 <img> 自动加载）
+function getImageUrl(id: number): string {
+  return stampImageUrl(id, 'original')
 }
 
 // 自定义复古风 marker icon（圆形印章质感）
@@ -104,15 +93,13 @@ function renderMarkers(points: MapPoint[]) {
   points.forEach((p) => {
     const marker = L.marker([p.latitude, p.longitude], { icon: stampIcon })
     marker.bindPopup(popupHtml(p))
-    // 打开 popup 时异步加载图片
-    marker.on('popupopen', async () => {
+    // 打开 popup 时设置图片 src（含 token 的 URL，浏览器自动加载）
+    marker.on('popupopen', () => {
       const img = document.querySelector<HTMLImageElement>(
         `.pp-img[data-id="${p.id}"]`
       )
       if (img && !img.src) {
-        const url = await getImageUrl(p.id)
-        if (url) img.src = url
-        else img.style.display = 'none'
+        img.src = getImageUrl(p.id)
       }
     })
     marker.addTo(m)
@@ -154,9 +141,6 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  // 释放 ObjectURL
-  imageCache.forEach((url) => URL.revokeObjectURL(url))
-  imageCache.clear()
   map.value?.remove()
   map.value = null
 })

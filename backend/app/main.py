@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
-from .api import auth, stamps, views
+from .api import auth, stamps, stats, views
 from .config import settings
 from .database import SessionLocal
 from .models.base import Base
@@ -56,6 +56,7 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(stamps.router)
+app.include_router(stats.router)
 app.include_router(views.router)
 
 

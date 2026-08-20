@@ -3,6 +3,7 @@ import { onMounted, ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { http } from '@/api/http'
 import { useAuthStore } from '@/stores/auth'
+import { stampImageUrl } from '@/utils/image'
 import type { Stamp } from '@/types/stamp'
 
 const router = useRouter()
@@ -86,7 +87,7 @@ const grouped = computed(() => {
 })
 
 function imageUrl(id: number) {
-  return `/api/stamps/${id}/image?variant=original`
+  return stampImageUrl(id, 'original')
 }
 
 function onLogout() {
@@ -106,6 +107,7 @@ watch(page, fetchStamps)
         <p class="subtitle">共 {{ stamps.length }} 条记录{{ hasMore ? '（当前页可能未完）' : '' }}</p>
       </div>
       <div class="header-actions">
+        <RouterLink to="/stats" class="map-btn">📊 统计</RouterLink>
         <RouterLink to="/map" class="map-btn">🗺 地图视图</RouterLink>
         <RouterLink to="/upload" class="add-btn">＋ 新增印章</RouterLink>
         <button class="secondary" @click="onLogout">登出</button>
@@ -145,7 +147,7 @@ watch(page, fetchStamps)
         <div class="day-items">
           <div v-for="s in items" :key="s.id" class="stamp-card">
             <div class="thumb">
-              <img :src="imageUrl(s.id)" :alt="s.location_name || '印章'" loading="lazy" />
+              <img :src="imageUrl(s.id)" :alt="s.location_name || '印章'" />
             </div>
             <div class="meta">
               <div class="meta-title">

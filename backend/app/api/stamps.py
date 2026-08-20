@@ -222,7 +222,9 @@ def get_stamp_image(
     abs_path = settings._resolve(settings.data_dir) / rel
     if not abs_path.exists():
         raise HTTPException(status_code=404, detail="图片文件缺失")
-    return FileResponse(abs_path)
+    # no-store：避免浏览器缓存含 access_token 的图片响应
+    # （token 过期后旧缓存会 401，且 URL 含 token 不宜缓存）
+    return FileResponse(abs_path, headers={"Cache-Control": "no-store"})
 
 
 @router.post("/{stamp_id}/reprocess", response_model=StampOut)
