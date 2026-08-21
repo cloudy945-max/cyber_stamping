@@ -25,7 +25,10 @@ class MapPoint(BaseModel):
     longitude: float
     location_name: Optional[str] = None
     type: Optional[str] = None
+    country: Optional[str] = None
+    region: Optional[str] = None
     city: Optional[str] = None
+    address: Optional[str] = None
     stamp_date: Optional[date] = None
     is_photo_only: bool = False
 

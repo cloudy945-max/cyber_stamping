@@ -9,6 +9,7 @@ class StampBase(BaseModel):
     """印章记录共享字段。"""
 
     stamp_date: Optional[date] = None
+    country: Optional[str] = None
     location_name: Optional[str] = None
     address: Optional[str] = None
     city: Optional[str] = None
@@ -28,6 +29,7 @@ class StampUpdate(BaseModel):
     """部分更新；所有字段可选。"""
 
     stamp_date: Optional[date] = None
+    country: Optional[str] = None
     location_name: Optional[str] = None
     address: Optional[str] = None
     city: Optional[str] = None

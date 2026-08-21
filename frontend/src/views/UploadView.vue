@@ -65,8 +65,13 @@ async function previewExif(f: File) {
     const form = new FormData()
     form.append('file', f)
     const { data } = await http.post<any>('/api/stamps/preview-exif', form, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 60000,
     })
+    // 后端返回 JPEG base64 预览（HEIC 等浏览器不支持的格式也能显示）
+    if (data.preview_url) {
+      if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
+      previewUrl.value = data.preview_url
+    }
     if (data.stamp_date && !stampDate.value) {
       stampDate.value = data.stamp_date
     }
@@ -125,9 +130,9 @@ async function onSubmit() {
   if (isPhotoOnly.value) form.append('is_photo_only', 'true')
 
   try {
-    await http.post('/api/stamps', form, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
+    // 不手动设 Content-Type，让 axios 自动设置 multipart boundary
+    // 大图（HEIC 转码 + rembg 抠图）需要较长超时
+    await http.post('/api/stamps', form, { timeout: 120000 })
     success.value = true
     setTimeout(() => router.push('/timeline'), 800)
   } catch (e: any) {
@@ -183,7 +188,7 @@ function reset() {
         </div>
         <label class="file-btn">
           选择图片
-          <input type="file" accept="image/*" @change="onFileChange" hidden />
+          <input type="file" accept="image/*,.heic,.heif" @change="onFileChange" hidden />
         </label>
         <p v-if="fileName" class="file-name">{{ fileName }}</p>
         <p v-if="exifLoading" class="exif-status">⏳ 正在分析照片信息…</p>

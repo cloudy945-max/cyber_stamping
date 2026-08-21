@@ -24,6 +24,7 @@ class Stamp(Base, TimestampMixin):
     uploaded_at: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
 
     # 地点（P2 由 EXIF+逆地理编码自动填充，P1 可手填）
+    country: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     location_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     address: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
     city: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)

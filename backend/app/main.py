@@ -1,6 +1,14 @@
 """FastAPI 应用入口。"""
 from contextlib import asynccontextmanager
 
+# 注册 HEIC/HEIF 支持（iPhone 默认格式），须在导入 PIL 前执行
+try:
+    import pillow_heif
+
+    pillow_heif.register_heif_opener()
+except ImportError:
+    pass
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session

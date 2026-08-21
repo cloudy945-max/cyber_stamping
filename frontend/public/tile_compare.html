@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>瓦片源对比 - 京都</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  body { margin: 0; font-family: sans-serif; }
+  .row { display: flex; gap: 8px; padding: 8px; }
+  .cell { flex: 1; }
+  .cell h3 { margin: 0 0 4px; font-size: 14px; }
+  .map { height: 300px; border: 1px solid #ccc; border-radius: 6px; }
+</style>
+</head>
+<body>
+<div class="row">
+  <div class="cell">
+    <h3>高德矢量（国内中文）</h3>
+    <div id="m1" class="map"></div>
+  </div>
+  <div class="cell">
+    <h3>ArcGIS 街道图 World_Street_Map</h3>
+    <div id="m2" class="map"></div>
+  </div>
+</div>
+<div class="row">
+  <div class="cell">
+    <h3>ArcGIS 卫星图 World_Imagery</h3>
+    <div id="m3" class="map"></div>
+  </div>
+  <div class="cell">
+    <h3>ArcGIS 地形图 World_Topo_Map</h3>
+    <div id="m4" class="map"></div>
+  </div>
+</div>
+<script>
+var center = [34.9680, 135.7760]; // 京都
+var zoom = 14;
+
+var amap = L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', { subdomains: '1234', maxZoom: 18 });
+var arcgisStreet = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 });
+var arcgisImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 });
+var arcgisTopo = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 });
+
+[{ id: 'm1', layer: amap }, { id: 'm2', layer: arcgisStreet }, { id: 'm3', layer: arcgisImagery }, { id: 'm4', layer: arcgisTopo }].forEach(function(cfg) {
+  var m = L.map(cfg.id, { center: center, zoom: zoom, zoomControl: false, layers: [cfg.layer] });
+  L.marker(center).addTo(m);
+});
+</script>
+</body>
+</html>
