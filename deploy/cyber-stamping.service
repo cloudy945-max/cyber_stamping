@@ -11,6 +11,7 @@ ExecStart=/opt/cyber_stamping/backend/.venv/bin/uvicorn app.main:app --host 127.
 Restart=always
 RestartSec=5
 Environment=PYTHONUNBUFFERED=1
+Environment=U2NET_HOME=/opt/cyber_stamping/models
 
 # 内存限制：2核4G 服务器留约 2G 给系统
 MemoryMax=2G

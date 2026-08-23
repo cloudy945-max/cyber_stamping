@@ -102,11 +102,28 @@ echo "  后端依赖安装完成"
 
 # ===== 6. 预下载 rembg 模型 =====
 echo "[6/8] 下载 rembg 模型 (u2netp, ~4.7MB)..."
-mkdir -p ~/.u2net
-if [ ! -f ~/.u2net/u2netp.onnx ]; then
-    curl -L -o ~/.u2net/u2netp.onnx \
-      "https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2netp.onnx"
-    echo "  模型下载完成"
+MODEL_DIR="$APP_DIR/models"
+mkdir -p "$MODEL_DIR"
+if [ ! -f "$MODEL_DIR/u2netp.onnx" ]; then
+    # 尝试多个镜像源
+    for URL in \
+      "https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2netp.onnx" \
+      "https://ghproxy.com/https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2netp.onnx" \
+      "https://mirror.ghproxy.com/https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2netp.onnx"; do
+        echo "  尝试: $URL"
+        if curl -L --connect-timeout 15 --max-time 120 -o "$MODEL_DIR/u2netp.onnx" "$URL" 2>&1; then
+            echo "  模型下载完成"
+            break
+        fi
+        echo "  失败，尝试下一个源..."
+    done
+    if [ ! -s "$MODEL_DIR/u2netp.onnx" ]; then
+        echo "  ⚠️  所有下载源均失败！"
+        echo "  请从本地下载后上传到服务器："
+        echo "    scp u2netp.onnx ubuntu@服务器IP:$MODEL_DIR/u2netp.onnx"
+        echo "  然后重新运行: sudo bash deploy/deploy.sh"
+        exit 1
+    fi
 else
     echo "  模型已存在，跳过"
 fi
