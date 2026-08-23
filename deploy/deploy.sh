@@ -16,7 +16,25 @@ echo "========================================"
 # ===== 1. 安装系统依赖 =====
 echo "[1/8] 安装系统依赖..."
 apt update -y
-apt install -y python3.11 python3.11-venv python3-pip nginx git curl
+apt install -y python3 python3-venv python3-pip nginx git curl
+
+# 检测系统 Python 版本（Ubuntu 22.04=3.10, Ubuntu 24.04=3.12）
+PYTHON_BIN="python3"
+PYTHON_VER=$($PYTHON_BIN --version 2>&1 | awk '{print $2}')
+echo "  系统 Python: $PYTHON_VER"
+
+# 如果版本 < 3.10，尝试安装 3.11
+PY_MINOR=$($PYTHON_BIN -c "import sys; print(sys.version_info.minor)")
+if [ "$PY_MINOR" -lt 10 ]; then
+    echo "  Python 3.${PY_MINOR} 版本过低，尝试安装 3.11..."
+    apt install -y software-properties-common
+    add-apt-repository -y ppa:deadsnakes/ppa
+    apt update -y
+    apt install -y python3.11 python3.11-venv
+    PYTHON_BIN="python3.11"
+    PYTHON_VER=$($PYTHON_BIN --version 2>&1 | awk '{print $2}')
+    echo "  已切换到 Python: $PYTHON_VER"
+fi
 
 # 检查 Node.js
 if ! command -v node &>/dev/null || [ "$(node -v | cut -d. -f1 | cut -dv -f2)" -lt 18 ]; then
@@ -25,7 +43,7 @@ if ! command -v node &>/dev/null || [ "$(node -v | cut -d. -f1 | cut -dv -f2)" -
     apt install -y nodejs
 fi
 
-echo "  Python: $(python3.11 --version)"
+echo "  Python: $($PYTHON_BIN --version)"
 echo "  Node.js: $(node -v)"
 
 # ===== 2. 拉取代码 =====
@@ -60,7 +78,7 @@ if [ ! -f .env ]; then
     cp .env.example .env
 
     # 生成随机密钥
-    JWT_SECRET=$(python3.11 -c "import secrets; print(secrets.token_hex(32))")
+    JWT_SECRET=$($PYTHON_BIN -c "import secrets; print(secrets.token_hex(32))")
     sed -i "s|SECRET_KEY=.*|SECRET_KEY=$JWT_SECRET|" .env
     sed -i "s|DEBUG=.*|DEBUG=false|" .env
 
@@ -77,7 +95,7 @@ fi
 # ===== 5. 安装后端依赖 =====
 echo "[5/8] 安装后端依赖..."
 cd "$APP_DIR/backend"
-python3.11 -m venv .venv
+$PYTHON_BIN -m venv .venv
 .venv/bin/pip install --upgrade pip
 .venv/bin/pip install -r requirements.txt
 echo "  后端依赖安装完成"
