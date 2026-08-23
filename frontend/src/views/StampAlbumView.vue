@@ -58,6 +58,16 @@ function onLogout() {
   router.replace('/login')
 }
 
+async function deleteStamp(stamp: Stamp) {
+  if (!confirm(`确定删除"${stamp.location_name || '这枚印章'}"？此操作不可恢复。`)) return
+  try {
+    await http.delete(`/api/stamps/${stamp.id}`)
+    stamps.value = stamps.value.filter(s => s.id !== stamp.id)
+  } catch (e: any) {
+    alert(e?.response?.data?.detail || '删除失败')
+  }
+}
+
 onMounted(fetchStamps)
 </script>
 
@@ -144,6 +154,7 @@ onMounted(fetchStamps)
               class="stamp-slot"
             >
               <StampSticker :stamp="s" :size="110" />
+              <button class="slot-delete" @click="deleteStamp(s)" title="删除">×</button>
             </div>
           </div>
         </section>
@@ -439,6 +450,34 @@ onMounted(fetchStamps)
   align-items: flex-start;
   padding: 0.5rem;
   position: relative;
+}
+
+.slot-delete {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(200, 64, 60, 0.0);
+  color: #c8403c;
+  font-size: 14px;
+  line-height: 20px;
+  text-align: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s;
+  z-index: 5;
+}
+
+.stamp-slot:hover .slot-delete {
+  opacity: 1;
+}
+
+.slot-delete:hover {
+  background: #c8403c;
+  color: #fff;
 }
 
 .stamp-slot::before {

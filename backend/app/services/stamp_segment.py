@@ -306,8 +306,22 @@ def segment_stamp(
             logger.warning("stamp_segment: foreground too large (%.1f%%)", fg_ratio)
             return None
 
-        # ===== 12. 输出 RGBA PNG =====
-        # OpenCV 是 BGR，PIL 需要 RGB，先转换通道顺序
+        # ===== 12. 裁剪到印章实际边界 =====
+        # 找到非透明像素的 bounding box，去掉大量透明边距
+        fg_coords = cv2.findNonZero((full_alpha > 10).astype(np.uint8))
+        if fg_coords is not None:
+            x, y, w, h = cv2.boundingRect(fg_coords)
+            pad_x = int(w * 0.10)
+            pad_y = int(h * 0.10)
+            x0 = max(0, x - pad_x)
+            y0 = max(0, y - pad_y)
+            x1 = min(W, x + w + pad_x)
+            y1 = min(H, y + h + pad_y)
+            full_alpha = full_alpha[y0:y1, x0:x1]
+            output_bgr = output_bgr[y0:y1, x0:x1]
+            H, W = full_alpha.shape[:2]
+
+        # ===== 13. 输出 RGBA PNG =====
         output_rgb = cv2.cvtColor(output_bgr, cv2.COLOR_BGR2RGB)
         rgba = np.dstack([output_rgb, full_alpha])
         dst_path.parent.mkdir(parents=True, exist_ok=True)

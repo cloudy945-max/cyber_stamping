@@ -95,6 +95,16 @@ function onLogout() {
   router.replace('/login')
 }
 
+async function deleteStamp(stamp: Stamp) {
+  if (!confirm(`确定删除"${stamp.location_name || '这枚印章'}"？此操作不可恢复。`)) return
+  try {
+    await http.delete(`/api/stamps/${stamp.id}`)
+    stamps.value = stamps.value.filter(s => s.id !== stamp.id)
+  } catch (e: any) {
+    alert(e?.response?.data?.detail || '删除失败')
+  }
+}
+
 onMounted(fetchStamps)
 watch(page, fetchStamps)
 </script>
@@ -164,6 +174,7 @@ watch(page, fetchStamps)
               </div>
               <div v-if="s.address" class="meta-sub muted">{{ s.address }}</div>
               <p v-if="s.notes" class="notes">{{ s.notes }}</p>
+              <button class="delete-btn" @click="deleteStamp(s)">删除</button>
             </div>
           </div>
         </div>
@@ -380,6 +391,24 @@ watch(page, fetchStamps)
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+.delete-btn {
+  margin-top: 0.5rem;
+  align-self: flex-start;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.6rem;
+  border: 1px solid #c8403c;
+  border-radius: 4px;
+  background: transparent;
+  color: #c8403c;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.delete-btn:hover {
+  background: #c8403c;
+  color: #fff;
 }
 
 .pagination {
