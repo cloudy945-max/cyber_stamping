@@ -324,7 +324,7 @@ onUnmounted(() => {
           class="layer-tab"
           :class="{ active: layerMode === 'auto' }"
           role="tab"
-          aria-selected="layerMode === 'auto'"
+          :aria-selected="layerMode === 'auto'"
           @click="setMode('auto')"
         >
           <span class="tab-icon">🧭</span>
@@ -335,7 +335,7 @@ onUnmounted(() => {
           class="layer-tab"
           :class="{ active: layerMode === 'street' }"
           role="tab"
-          aria-selected="layerMode === 'street'"
+          :aria-selected="layerMode === 'street'"
           @click="setMode('street')"
         >
           <span class="tab-icon">🗺</span>
@@ -346,7 +346,7 @@ onUnmounted(() => {
           class="layer-tab"
           :class="{ active: layerMode === 'satellite' }"
           role="tab"
-          aria-selected="layerMode === 'satellite'"
+          :aria-selected="layerMode === 'satellite'"
           @click="setMode('satellite')"
         >
           <span class="tab-icon">🛰</span>

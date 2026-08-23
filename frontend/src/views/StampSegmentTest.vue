@@ -5,10 +5,8 @@ import { useAuthStore } from '@/stores/auth'
 const auth = useAuthStore()
 
 const fileInput = ref<HTMLInputElement>()
-const resultImg = ref<HTMLImageElement>()
 
 // DOM 元素引用
-const imageContainer = ref<HTMLDivElement>()
 const overlayDiv = ref<HTMLDivElement>()
 
 // 图片与框选状态
