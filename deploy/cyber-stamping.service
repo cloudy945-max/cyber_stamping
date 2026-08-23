@@ -1,0 +1,19 @@
+[Unit]
+Description=Cyber Stamping Backend (FastAPI)
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/cyber_stamping/backend
+ExecStart=/opt/cyber_stamping/backend/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 1
+Restart=always
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+
+# 内存限制：2核4G 服务器留约 2G 给系统
+MemoryMax=2G
+
+[Install]
+WantedBy=multi-user.target
