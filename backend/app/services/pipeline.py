@@ -16,8 +16,8 @@ from sqlalchemy.orm import Session
 
 from ..config import settings
 from ..models.stamp import Stamp
-from .background_removal import remove_background
 from .enhance import enhance_image
+from .stamp_segment import segment_stamp
 
 
 def process_pipeline(stamp: Stamp, db: Session) -> None:
@@ -48,8 +48,10 @@ def process_pipeline(stamp: Stamp, db: Session) -> None:
         # 1. 增强（失败时返回原图路径，继续抠图）
         used_enhanced = enhance_image(abs_original, enhanced_path)
 
-        # 2. 抠图（失败返回 None，sticker_path 留空）
-        result: Optional[Path] = remove_background(used_enhanced, sticker_path)
+        # 2. 印章分割（颜色校正+智能边界+淡色调淡，失败返回 None）
+        result: Optional[Path] = segment_stamp(
+            used_enhanced, sticker_path, bbox=None, color="auto"
+        )
 
         if result is not None:
             # 写相对路径（与 original_path 同样以 stamps/ 起头）

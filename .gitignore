@@ -24,6 +24,11 @@ dist-ssr/
 .env.*
 !.env.example
 
+# 测试临时文件
+backend/test_*.py
+backend/inline_test.py
+backend/test_output/
+
 # IDE
 .vscode/
 .idea/
