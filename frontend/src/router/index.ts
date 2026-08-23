@@ -9,6 +9,7 @@ const routes = [
   { path: '/stats', name: 'stats', component: () => import('@/views/StatsView.vue'), meta: { requiresAuth: true } },
   { path: '/album', name: 'album', component: () => import('@/views/StampAlbumView.vue'), meta: { requiresAuth: true } },
   { path: '/upload', name: 'upload', component: () => import('@/views/UploadView.vue'), meta: { requiresAuth: true } },
+  { path: '/segment-test', name: 'segment-test', component: () => import('@/views/StampSegmentTest.vue'), meta: { requiresAuth: true } },
 ]
 
 export const router = createRouter({
