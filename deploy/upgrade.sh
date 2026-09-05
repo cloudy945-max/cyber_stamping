@@ -113,12 +113,13 @@ fi
 .venv/bin/pip install -r requirements.txt -q
 echo "  后端依赖安装完成"
 
-# 验证 stamp_extractor 可导入
-if .venv/bin/python -c "from stamp_extractor.processor import StampExtractor; print('  stamp_extractor 导入成功')" 2>/dev/null; then
+# 验证 stamp_extractor 可导入（需从项目根目录运行，stamp_extractor 在项目根）
+cd "$APP_DIR"
+if backend/.venv/bin/python -c "from stamp_extractor.processor import StampExtractor; print('  stamp_extractor 导入成功')" 2>/dev/null; then
     echo "  ✅ 新引擎验证通过"
 else
     echo "  ⚠️  stamp_extractor 导入失败，请检查日志"
-    echo "  尝试手动验证: cd $APP_DIR/backend && .venv/bin/python -c 'from stamp_extractor.processor import StampExtractor'"
+    echo "  尝试手动验证: cd $APP_DIR && backend/.venv/bin/python -c 'from stamp_extractor.processor import StampExtractor'"
 fi
 
 # ===== 5. 重新构建前端 =====
