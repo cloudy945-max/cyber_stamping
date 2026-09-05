@@ -29,6 +29,13 @@ backend/test_*.py
 backend/inline_test.py
 backend/test_output/
 
+# stamp_extractor 运行时产物
+stamp_extractor/debug/
+stamp_extractor/output/
+stamp_extractor/input/
+stamp_extractor/preview/
+stamp_extractor/_tmp_jfif/
+
 # IDE
 .vscode/
 .idea/
