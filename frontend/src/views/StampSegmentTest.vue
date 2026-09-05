@@ -20,7 +20,9 @@ const dragging = ref(false)
 const dragStartPercent = ref({ x: 0, y: 0 })
 const dragEndPercent = ref({ x: 0, y: 0 })
 
-// 颜色与结果
+// 方法与预设
+const method = ref<'extractor' | 'legacy'>('extractor')
+const preset = ref<'default' | 'preserve_light' | 'conservative'>('default')
 const color = ref<'red' | 'blue' | 'black' | 'auto'>('auto')
 const resultUrl = ref('')
 const loading = ref(false)
@@ -161,7 +163,12 @@ async function submit() {
   try {
     const fd = new FormData()
     fd.append('file', fileInput.value.files[0])
-    fd.append('color', color.value)
+    fd.append('method', method.value)
+    if (method.value === 'extractor') {
+      fd.append('preset', preset.value)
+    } else {
+      fd.append('color', color.value)
+    }
     
     // 将百分比坐标转换为原图物理像素坐标
     if (bbox.value) {
@@ -261,10 +268,28 @@ onUnmounted(() => {
       <button v-if="bbox" class="secondary clear-btn" @click="clearBbox">清除框选</button>
     </div>
 
-    <!-- 步骤 3：颜色 + 分割 -->
+    <!-- 步骤 3：方法 + 预设 + 分割 -->
     <div v-if="imgSrc && !converting" class="step">
-      <label class="step-label">③ 印章颜色 & 分割</label>
-      <div class="color-row">
+      <label class="step-label">③ 抠图方法 & 分割</label>
+      <div class="method-row">
+        <label class="method-opt">
+          <input v-model="method" type="radio" value="extractor" />
+          高保真 Alpha（新）
+        </label>
+        <label class="method-opt">
+          <input v-model="method" type="radio" value="legacy" />
+          旧版（R-G+rembg）
+        </label>
+      </div>
+      <!-- extractor 预设选择 -->
+      <div v-if="method === 'extractor'" class="preset-row">
+        <label v-for="p in (['default','preserve_light','conservative'] as const)" :key="p" class="preset-opt">
+          <input v-model="preset" type="radio" :value="p" />
+          {{ p === 'default' ? 'Default（兼顾）' : p === 'preserve_light' ? 'Preserve Light（保淡墨）' : 'Conservative（干净）' }}
+        </label>
+      </div>
+      <!-- legacy 颜色选择 -->
+      <div v-else class="color-row">
         <label v-for="c in (['auto','red','blue','black'] as const)" :key="c" class="color-opt">
           <input v-model="color" type="radio" :value="c" />
           <span :class="['color-dot', c === 'auto' ? 'auto' : c]"></span>
@@ -395,6 +420,43 @@ onUnmounted(() => {
   display: flex;
   gap: 1.2rem;
   margin-bottom: 0.8rem;
+}
+
+.method-row {
+  display: flex;
+  gap: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.method-opt {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.method-opt input {
+  width: auto;
+}
+
+.preset-row {
+  display: flex;
+  gap: 1.2rem;
+  margin-bottom: 0.8rem;
+  padding: 0.5rem 0;
+}
+
+.preset-opt {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.preset-opt input {
+  width: auto;
 }
 
 .color-opt {

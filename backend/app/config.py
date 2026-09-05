@@ -49,6 +49,11 @@ class Settings(BaseSettings):
     # rembg 抠图模型：u2netp(~4.7MB,快速) / u2net(~176MB,高质量) / silueta(~43MB)
     rembg_model: str = "u2netp"
 
+    # 印章抠图方法：extractor（高保真 Alpha，新） / legacy（R-G+rembg，旧）
+    segment_method: str = "extractor"
+    # extractor 预设：default / preserve_light / conservative
+    extractor_preset: str = "default"
+
     # 跨域（开发期放行前端 dev server）
     cors_origins: List[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
 

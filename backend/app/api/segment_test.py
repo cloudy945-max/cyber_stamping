@@ -17,7 +17,7 @@ from PIL import Image
 from ..config import settings
 from ..deps import get_current_user
 from ..models.user import User
-from ..services.stamp_segment import segment_stamp
+from ..services.stamp_segment import segment_stamp, segment_stamp_v2
 
 router = APIRouter(prefix="/api/segment-test", tags=["segment-test"])
 
@@ -45,11 +45,15 @@ async def segment_test(
     bbox_x1: Optional[int] = Form(None),
     bbox_y1: Optional[int] = Form(None),
     color: str = Form("red"),
+    method: str = Form("extractor"),
+    preset: str = Form("default"),
     _: User = Depends(get_current_user),
 ):
     """上传图片 + 可选框选区域 → 返回分割后的透明背景 PNG。
 
     bbox 四个字段都提供时才生效；color 支持 red/blue/black。
+    method: extractor（高保真 Alpha，新） / legacy（R-G+rembg，旧）。
+    preset: default / preserve_light / conservative（仅 extractor 模式）。
     """
     try:
         src = _to_png(file)
@@ -61,7 +65,10 @@ async def segment_test(
         bbox = (bbox_x0, bbox_y0, bbox_x1, bbox_y1)  # type: ignore[assignment]
 
     dst = _TMP / f"{src.stem}_seg.png"
-    result = segment_stamp(src, dst, bbox=bbox, color=color)
+    if method == "legacy":
+        result = segment_stamp(src, dst, bbox=bbox, color=color)
+    else:
+        result = segment_stamp_v2(src, dst, bbox=bbox, preset=preset)
 
     if result is None:
         return JSONResponse(

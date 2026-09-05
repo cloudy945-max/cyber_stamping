@@ -337,3 +337,81 @@ def segment_stamp(
         import traceback
         traceback.print_exc()
         return None
+
+
+# ============================================================
+# v2: 高保真 Alpha 提取（stamp_extractor 集成）
+# ============================================================
+
+def segment_stamp_v2(
+    src_path: Path,
+    dst_path: Path,
+    bbox: Optional[BBox] = None,
+    preset: str = "default",
+) -> Optional[Path]:
+    """使用 stamp_extractor 高保真 Alpha 提取引擎。
+
+    与 segment_stamp() 签名对齐，便于 pipeline 无缝切换。
+    保留原始 RGB，只计算连续 Alpha（非二值），不做颜色校正。
+    """
+    try:
+        import sys as _sys
+        # 确保 stamp_extractor 包可被 import
+        _project_root = Path(__file__).resolve().parent.parent.parent.parent
+        if str(_project_root) not in _sys.path:
+            _sys.path.insert(0, str(_project_root))
+
+        from stamp_extractor.processor import StampExtractor
+        from stamp_extractor.config import ExtractorConfig
+
+        # 选择预设
+        cfg_map = {
+            "default": ExtractorConfig.defaults(),
+            "preserve_light": ExtractorConfig.preserve_light_ink(),
+            "conservative": ExtractorConfig.conservative(),
+        }
+        cfg = cfg_map.get(preset, ExtractorConfig.defaults())
+
+        # bbox 预裁剪（与 v1 行为一致：用户框选区域 → 只处理该区域）
+        actual_src = src_path
+        if bbox is not None:
+            bx0, by0, bx1, by1 = bbox
+            img = Image.open(src_path)
+            if img.mode != "RGB":
+                img = img.convert("RGB")
+            img = img.crop((bx0, by0, bx1, by1))
+            tmp_dir = dst_path.parent / "_tmp_bbox"
+            tmp_dir.mkdir(parents=True, exist_ok=True)
+            actual_src = tmp_dir / f"{src_path.stem}_bbox.png"
+            img.save(actual_src, "PNG")
+
+        extractor = StampExtractor(cfg)
+        result = extractor.extract_file(
+            input_path=actual_src,
+            output_png=dst_path,
+            debug_dir=None,
+        )
+
+        if result.rgba is None or result.alpha.max() == 0:
+            logger.warning("stamp_segment_v2: empty foreground for %s", src_path.name)
+            return None
+
+        # 清理临时文件
+        if bbox is not None and actual_src != src_path:
+            try:
+                actual_src.unlink()
+            except Exception:
+                pass
+
+        logger.info(
+            "stamp_segment_v2 ok: %s -> %s (preset=%s, mean_alpha=%.1f, nontransparent=%.1f%%)",
+            src_path.name, dst_path.name, preset,
+            result.stats.get("mean_alpha", 0),
+            result.stats.get("nontransparent_pct", 0),
+        )
+        return dst_path
+    except Exception as e:
+        logger.warning("stamp_segment_v2 failed for %s: %s", src_path, e)
+        import traceback
+        traceback.print_exc()
+        return None
